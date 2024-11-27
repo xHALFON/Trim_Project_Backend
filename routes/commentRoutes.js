@@ -9,31 +9,32 @@ import {
     deleteComment,
     deleteAllComments
 } from "../controllers/commentController.js";
+import { protect } from '../middleware/middleware.js';
 
 const router = express.Router();
 
 // Create a comment
-router.post("/", createComment);
+router.post("/",protect, createComment);
 
 // Get all comments
-router.get("/", getAllComments);
+router.get("/",protect, getAllComments);
 
 // Get comments for a specific post by id
-router.get("/:postId", getCommentsByPost);
+router.get("/:postId",protect, getCommentsByPost);
 
 // Get comments for a specific user by user name
-router.get("/user/:user", getCommentsByUser);
+router.get("/user/:user",protect, getCommentsByUser);
 
 //Get comments for a specific comment id
-router.get("/getComment/:id", getCommentByID)
+router.get("/getComment/:id",protect, getCommentByID)
 
 // Update a comment
-router.put("/:id", updateComment);
+router.put("/:id",protect, updateComment);
 
 // Delete a comment
-router.delete("/:id", deleteComment);
+router.delete("/:id",protect, deleteComment);
 
 // Delete all comments
-router.delete("/",deleteAllComments)
+router.delete("/",protect, deleteAllComments)
 
 export default router;
