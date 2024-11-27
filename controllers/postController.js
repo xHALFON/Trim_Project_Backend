@@ -10,3 +10,12 @@ export const addPost = async (req,res) => {
         throw res.status(500).json({ error: err.message });
     }
 };
+
+export const getAllPosts = async (req,res) => {
+    try{
+        const allPosts = await Post.find();
+        return res.status(201).json(allPosts)
+    }catch(err){
+        throw res.status(500).json({ error: err.message });
+    }
+};
