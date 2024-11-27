@@ -6,4 +6,5 @@ const postSchema = new mongoose.Schema({
     sender: String,
 });
 
-module.exports = mongoose.model('Post', postSchema);
+const Post = mongoose.model('Post', postSchema);
+export default Post;
