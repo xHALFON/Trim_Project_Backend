@@ -1,6 +1,7 @@
 import express from 'express'
 import { connectDB } from './utils/db.js';
 import bodyParser from 'body-parser';
+import postRoutes from './routes/postRoutes.js'
 
 const app = express();
 app.use(express.json());
@@ -12,6 +13,9 @@ app.get('/',(req,res)=>{
  })
 
 connectDB();
+
+//routes
+app.use('/post', postRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
