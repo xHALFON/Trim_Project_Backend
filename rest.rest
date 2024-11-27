@@ -1,0 +1,34 @@
+# POST request to create a new post
+POST http://localhost:3000/post
+Content-Type: application/json
+
+{
+  "sender": "1234",
+  "message": "This is a new post!",
+  "timestamp": "2024-11-27T12:00:00Z"
+}
+
+###
+# GET request to fetch all posts 
+GET http://localhost:3000/post
+Content-Type: application/json
+
+# GET request to fetch posts by a specific sender
+GET http://localhost:3000/post?sender=1234
+Content-Type: application/json
+
+###
+
+# GET request to fetch a specific post by ID
+GET http://localhost:3000/post/60d9f9f9f9f9f9f9f9f9f9f9
+Content-Type: application/json
+
+###
+
+# PUT request to update a specific post by ID
+PUT http://localhost:3000/post/60d9f9f9f9f9f9f9f9f9f9f9
+Content-Type: application/json
+
+{
+  "message": "Updated message content!"
+}
