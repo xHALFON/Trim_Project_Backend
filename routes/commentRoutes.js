@@ -6,6 +6,8 @@ import {
     getCommentsByUser,
     getCommentByID,
     updateComment,
+    deleteComment,
+    deleteAllComments
 } from "../controllers/commentController.js";
 
 const router = express.Router();
@@ -27,5 +29,11 @@ router.get("/getComment/:id", getCommentByID)
 
 // Update a comment
 router.put("/:id", updateComment);
+
+// Delete a comment
+router.delete("/:id", deleteComment);
+
+// Delete all comments
+router.delete("/",deleteAllComments)
 
 export default router;
