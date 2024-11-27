@@ -3,7 +3,8 @@ import express from 'express'
 import { connectDB } from './utils/db.js';
 import bodyParser from 'body-parser';
 import commentRoutes from "./routes/commentRoutes.js";
-import postRoutes from './routes/postRoutes.js'
+import postRoutes from './routes/postRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 const app = express();
 app.use(express.json());
@@ -20,6 +21,7 @@ connectDB();
 //routes
 app.use('/post', postRoutes);
 app.use("/comments", commentRoutes);
+app.use("/auth", authRoutes)
 
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
