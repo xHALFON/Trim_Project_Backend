@@ -11,4 +11,14 @@ export const createComment = async (req, res) => {
     }
 };
 
+// Get all comments
+export const getAllComments = async (req, res) => {
+    try {
+        const comments = await Comment.find();
+        res.status(200).json(comments);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 
