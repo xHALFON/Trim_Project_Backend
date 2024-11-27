@@ -1,9 +1,19 @@
 import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema({
-    title: String,
-    content: String,
-    sender: String,
-});
+    title: {
+        type: String,
+        required: true,
+    },
+    content: {
+        type: String,
+        required: true,
+    },
+    sender: {
+        type: String, // יש לוודא שזה String ולא ObjectId
+        required: true,
+    },
+},{ timestamps: true });
 
-module.exports = mongoose.model('Post', postSchema);
+const Post = mongoose.model('Post', postSchema);
+export default Post;
