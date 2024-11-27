@@ -1,0 +1,55 @@
+### Create a Comment
+POST http://localhost:3000/comments
+Content-Type: application/json
+
+{
+    "content": "This is a sample comment",
+    "user": "SampleUser",
+    "postId": "VALID_POST_ID"
+}
+
+###
+
+### Get All Comments
+GET http://localhost:3000/comments
+Content-Type: application/json
+
+###
+
+### Get Comments for a Specific Post by ID
+GET http://localhost:3000/comments/VALID_POST_ID
+Content-Type: application/json
+
+###
+
+### Get Comments for a Specific User by Username
+GET http://localhost:3000/comments/user/SampleUser
+Content-Type: application/json
+
+###
+
+### Get a Comment for a Specific Comment ID
+GET http://localhost:3000/comments/getComment/VALID_COMMENT_ID
+Content-Type: application/json
+
+###
+
+### Update a Comment
+PUT http://localhost:3000/comments/VALID_COMMENT_ID
+Content-Type: application/json
+
+{
+    "content": "Updated comment content"
+}
+
+###
+
+### Delete a Comment by ID
+DELETE http://localhost:3000/comments/VALID_COMMENT_ID
+Content-Type: application/json
+
+###
+
+### Delete All Comments
+DELETE http://localhost:3000/comments
+Content-Type: application/json
