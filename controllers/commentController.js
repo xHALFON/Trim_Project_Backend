@@ -43,3 +43,28 @@ export const getCommentsByUser = async (req, res) => {
     }
 };
 
+// Get comments for a specific commentID
+export const getCommentByID = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const comments = await Comment.findById(id);
+        res.status(200).json(comments);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
+// Update a comment
+export const updateComment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { content } = req.body;
+        const updatedComment = await Comment.findByIdAndUpdate(id, { content }, { new: true });
+        if (!updatedComment) return res.status(404).json({ message: "Comment not found" });
+        res.status(200).json(updatedComment);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
