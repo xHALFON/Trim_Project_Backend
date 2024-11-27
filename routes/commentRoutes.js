@@ -1,7 +1,9 @@
 import express from "express";
 import {
     createComment,
-    getAllComments
+    getAllComments,
+    getCommentsByPost,
+    getCommentsByUser
 } from "../controllers/commentController.js";
 
 const router = express.Router();
