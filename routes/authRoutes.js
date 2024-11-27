@@ -1,5 +1,5 @@
 import express from "express";
-import { login, register } from "../controllers/AuthController.js"
+import { login, register, logout } from "../controllers/AuthController.js"
 const router = express.Router()
 
 /**
@@ -81,4 +81,57 @@ router.post('/register',register);
  */
 router.post('/login', login);
 
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     summary: User Logout
+ *     description: Logs out the user by invalidating their refresh token.
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: The refresh token to be invalidated.
+ *                 example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZDE0Yzg0LTU3NjktNGJlYy1iOGY5LTg"
+ *     responses:
+ *       200:
+ *         description: User successfully logged out.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'User logged out successfully'
+ *       401:
+ *         description: No refresh token provided.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: 'Refresh token is required'
+ *       403:
+ *         description: Invalid refresh token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: 'Invalid refresh token'
+ */
+router.post('/logout', logout);
 export default router;
