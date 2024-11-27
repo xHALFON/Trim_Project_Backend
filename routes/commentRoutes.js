@@ -3,7 +3,9 @@ import {
     createComment,
     getAllComments,
     getCommentsByPost,
-    getCommentsByUser
+    getCommentsByUser,
+    getCommentByID,
+    updateComment,
 } from "../controllers/commentController.js";
 
 const router = express.Router();
@@ -20,5 +22,10 @@ router.get("/:postId", getCommentsByPost);
 // Get comments for a specific user by user name
 router.get("/user/:user", getCommentsByUser);
 
+//Get comments for a specific comment id
+router.get("/getComment/:id", getCommentByID)
+
+// Update a comment
+router.put("/:id", updateComment);
 
 export default router;
