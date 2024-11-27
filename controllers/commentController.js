@@ -1,9 +1,14 @@
 import Comment from "../models/commentModel.js";
+import Post from "../models/postModel.js";
 
 // Create a comment
 export const createComment = async (req, res) => {
     try {
         const { content, user, postId } = req.body;
+        const post = await Post.findOne({_id: postId});
+        if(!post){
+            return res.status(404).json({error: "Post does not exists!"});
+        }
         const comment = await Comment.create({ content, user, postId });
         res.status(201).json(comment);
     } catch (err) {

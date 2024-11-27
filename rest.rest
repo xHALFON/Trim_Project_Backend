@@ -22,9 +22,9 @@ GET http://localhost:3000/comments/user/SampleUser
 POST http://localhost:3000/post
 Content-Type: application/json
 {
-  "sender": "1234",
-  "message": "This is a new post!",
-  "timestamp": "2024-11-27T12:00:00Z"
+  "title": "post_title",
+  "content": "This is a new post!",
+  "sender": "Tuval_Guy"
 }
 
 ### GET request to fetch all posts 
