@@ -21,4 +21,25 @@ export const getAllComments = async (req, res) => {
     }
 };
 
+// Get comments for a specific post
+export const getCommentsByPost = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const comments = await Comment.find({ postId });
+        res.status(200).json(comments);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Get comments by a specific user
+export const getCommentsByUser = async (req, res) => {
+    try {
+        const { user } = req.params; 
+        const comments = await Comment.find({ user }); 
+        res.status(200).json(comments);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
 
