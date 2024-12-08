@@ -31,7 +31,7 @@ export const getAllPosts_senderId = async (req,res) => {
 export const getPostById = async (req,res) => {
     try{
         const post = await Post.find({_id: req.params.id});
-        if (!post){ 
+        if (post.length == 0){ 
             return res.status(404).json({ error: 'Post not found' });
         }
         res.json(post);
@@ -46,7 +46,7 @@ export const updatePost = async (req,res) => {
         if(!post){
             return res.status(404).json({error: "Post not found"});
         }
-        return res.status(201).json(post)
+        return res.status(200).json(post)
     }catch(err){
         return res.status(500).json({ error: err.message });
     }

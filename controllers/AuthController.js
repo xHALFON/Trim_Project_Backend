@@ -59,11 +59,7 @@ export const login = async (req, res) => {
 };
 
 export const refreshToken = async (req, res) => {
-    const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-        return res.status(401).json({ error: 'Refresh token is required' });
-    }
+    const { refreshToken } = req.params;
 
     const user = await User.findOne({ refreshToken });
     if (!user) {
@@ -77,7 +73,7 @@ export const refreshToken = async (req, res) => {
 
         const accessToken = generateToken(user._id);
 
-        res.json({ accessToken });
+        res.status(200).json({ accessToken });
     });
 };
 

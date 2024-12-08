@@ -10,7 +10,7 @@ const postSchema = new mongoose.Schema({
         required: true,
     },
     sender: {
-        type: String, // יש לוודא שזה String ולא ObjectId
+        type: String,
         required: true,
     },
 },{ timestamps: true });

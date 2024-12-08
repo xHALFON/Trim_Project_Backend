@@ -1,86 +1,242 @@
 import request from 'supertest';
-import app from '../index';
-import Post from '../models/postModel.js';
+import app from '../index.js'; 
+import mongoose from 'mongoose';
 import Comment from '../models/commentModel.js';
+import Post from '../models/postModel.js';
+import User from '../models/userModel.js';
 
-const Token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NDc2YTUyZTEwNzRjNjY1ZmE1YzJiYiIsImVtYWlsIjoic3RyaW5nIiwiaWF0IjoxNzMyNzMzNTI3LCJleHAiOjE3MzMzMzgzMjd9.UwKaF9S5ZJ_NX_W7uA2yzfGo_RAxAtolZ-UXIwm337U";
+let jwtToken = null;
+let server;
 
-describe('Comment API Tests', () => {
-    // דוגמת בדיקה ליצירת תגובה חדשה
-    it('should create a new comment', async () => {
-        const res = await request(app)
+beforeAll(async () => {
+    server = app.listen(3001);
+
+    const registerRes = await request(server)
+      .post('/auth/register')
+      .send({
+        username: 'testsuser',
+        email: 'testusers@example.com',
+        password: 'password123',
+      });
+
+    const loginRes = await request(server)
+      .post('/auth/login')
+      .send({
+        email: 'testusers@example.com',
+        password: 'password123',
+      });
+
+    jwtToken = loginRes.body.accessToken;
+});
+
+afterEach(async () => {
+    await Comment.deleteMany({});
+    await Post.deleteMany({});
+});
+
+afterAll(async () => {
+    await User.deleteOne({ email: 'testusers@example.com' });
+    await mongoose.disconnect();
+    server.close();
+});
+
+// בדיקה ליצירת תגובה
+describe('POST /comments', () => {
+    it('should create a comment successfully', async () => {
+        const post = await Post.create({ title: 'Test Post', content: 'Test Content', sender: "senderId" });
+
+        const response = await request(server)
             .post('/comments')
+            .set('Authorization', `Bearer ${jwtToken}`)
             .send({
-                content: 'This is a comment',
-                user: 'testuser',
-                postId: '1234567890abcdef'
-            })
-            .set('Authorization', Token); // הוסף את ה-token כאן
-        expect(res.status).toBe(201);
-        expect(res.body).toHaveProperty('content', 'This is a comment');
+                content: 'Test Comment',
+                user: 'userId123',
+                postId: post._id,
+            });
+
+        expect(response.status).toBe(201);
+        expect(response.body.content).toBe('Test Comment');
+        expect(response.body.postId).toBe(post._id.toString());
     });
 
-    // דוגמת בדיקה להחזיר את כל התגובות
-    it('should get all comments', async () => {
-        const res = await request(app)
+    it('should return 404 if the post does not exist', async () => {
+        const response = await request(server)
+            .post('/comments')
+            .set('Authorization', `Bearer ${jwtToken}`)
+            .send({
+                content: 'Test Comment',
+                user: 'userId123',
+                postId: '6755898b29631b6e57ecd791',
+            });
+
+        expect(response.status).toBe(404);
+        expect(response.body.error).toBe('Post does not exists!');
+    });
+});
+
+describe('GET /comments', () => {
+    it('should return 401 if there is an error', async () => {
+        const response = await request(server).get('/comments').set('Authorization', `Bearer ${jwtToken+'1'}`);
+
+        expect(response.status).toBe(401);  // בודק שהסטטוס הוא 500
+        expect(response.body.message).toBe('Not authorized, token failed');  
+    });
+});
+
+describe('GET /comments', () => {
+    it('should return 401 if there is an error', async () => {
+        const response = await request(server).get('/comments');
+
+        expect(response.status).toBe(401);  
+        expect(response.body.message).toBe('Not authorized, no token'); 
+    });
+});
+
+describe('POST /comments', () => {
+    it('should return 500 if an error occurs', async () => {
+        const mockPost = jest.spyOn(Post, 'findOne').mockRejectedValue(new Error('Database error'));
+
+        const response = await request(server)
+            .post('/comments')
+            .send({ content: 'Test Comment', user: 'userId123', postId: 'invalidPostId' })
+            .set('Authorization', `Bearer ${jwtToken}`);
+
+        expect(response.status).toBe(500);
+        expect(response.body.error).toBe('Database error');
+
+        mockPost.mockRestore();
+    });
+});
+
+
+// בדיקה לקריאה של כל התגובות
+describe('GET /comments', () => {
+    it('should return all comments', async () => {
+        const post = await Post.create({ title: 'Test Post', content: 'Test Content', sender: "senderId" });
+
+        await Comment.create({ content: 'First Comment', user: 'user1', postId: post._id });
+        await Comment.create({ content: 'Second Comment', user: 'user2', postId: post._id });
+
+        const response = await request(server)
             .get('/comments')
-            .set('Authorization', Token); // הוסף את ה-token כאן
-        expect(res.status).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
+            .set('Authorization', `Bearer ${jwtToken}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.length).toBeGreaterThan(0);
+        expect(response.body[0].content).toBe('First Comment');
+    });
+});
+
+
+// בדיקה לקריאה של תגובות לפי פוסט
+describe('GET /comments/:postId', () => {
+    it('should return comments for a specific post', async () => {
+        const post = await Post.create({ title: 'Test Post', content: 'Test Content', sender: "senderId" });
+
+        const comment1 = await Comment.create({ content: 'First Comment', user: 'user1', postId: post._id });
+        const comment2 = await Comment.create({ content: 'Second Comment', user: 'user2', postId: post._id });
+
+        const response = await request(server)
+            .get(`/comments/${post._id}`)
+            .set('Authorization', `Bearer ${jwtToken}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.length).toBe(2);
+        expect(response.body[0].content).toBe('First Comment');
     });
 
-    // דוגמת בדיקה לקבל תגובות לפי postId
-    it('should get comments by postId', async () => {
-        const res = await request(app)
-            .get('/comments/1234567890abcdef')
-            .set('Authorization', Token); // הוסף את ה-token כאן
-        expect(res.status).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
+    it('should return 404 if post does not exist', async () => {
+        const response = await request(server)
+            .get('/comments/6755898b29631b6e57ecd791')
+            .set('Authorization', `Bearer ${jwtToken}`);
+
+        expect(response.status).toBe(404);
+    });
+});
+
+// בדיקה לקריאה של תגובות לפי משתמש
+describe('GET /comments/user/:user', () => {
+    it('should return comments for a specific user', async () => {
+        const post = await Post.create({ title: 'Test Post', content: 'Test Content', sender: "senderId" });
+
+        const comment1 = await Comment.create({ content: 'User Comment 1', user: 'user1', postId: post._id });
+        const comment2 = await Comment.create({ content: 'User Comment 2', user: 'user1', postId: post._id });
+        const comment3 = await Comment.create({ content: 'User Comment 3', user: 'user2', postId: post._id });
+
+        const response = await request(server)
+            .get('/comments/user/user1')
+            .set('Authorization', `Bearer ${jwtToken}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.length).toBe(2);
+    });
+});
+
+// בדיקה לעדכון תגובה
+describe('PUT /comments/:id', () => {
+    it('should update a comment successfully', async () => {
+        const post = await Post.create({ title: 'Test Post', content: 'Test Content', sender: "senderId" });
+        const comment = await Comment.create({ content: 'Old Comment', user: 'userId123', postId: post._id });
+
+        const response = await request(server)
+            .put(`/comments/${comment._id}`)
+            .set('Authorization', `Bearer ${jwtToken}`)
+            .send({
+                content: 'Updated Comment',
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.content).toBe('Updated Comment');
     });
 
-    // דוגמת בדיקה לקבל תגובות לפי שם משתמש
-    it('should get comments by user name', async () => {
-        const res = await request(app)
-            .get('/comments/user/testuser')
-            .set('Authorization', Token); // הוסף את ה-token כאן
-        expect(res.status).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
+    it('should return 404 if the comment does not exist', async () => {
+        const response = await request(server)
+            .put('/comments/6755898b29631b6e57ecd791')
+            .set('Authorization', `Bearer ${jwtToken}`)
+            .send({
+                content: 'Updated Comment',
+            });
+
+        expect(response.status).toBe(404);
+    });
+});
+
+// בדיקה למחיקת תגובה
+describe('DELETE /comments/:id', () => {
+    it('should delete a comment successfully', async () => {
+        const post = await Post.create({ title: 'Test Post', content: 'Test Content', sender: "senderId" });
+        const comment = await Comment.create({ content: 'Test Comment to Delete', user: 'userId123', postId: post._id });
+
+        const response = await request(server)
+            .delete(`/comments/${comment._id}`)
+            .set('Authorization', `Bearer ${jwtToken}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.message).toBe('Comment deleted successfully');
     });
 
-    // דוגמת בדיקה לקבל תגובה לפי ID
-    it('should get comment by ID', async () => {
-        const res = await request(app)
-            .get('/comments/getComment/60d5f4a1b1b3b8f4ccdb3f6c') // עדכן את ה-ID לדוגמה
-            .set('Authorization', Token); // הוסף את ה-token כאן
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty('id');
-    });
+    it('should return 404 if the comment does not exist', async () => {
+        const response = await request(server)
+            .delete('/comments/6755898b29631b6e57ecd791')
+            .set('Authorization', `Bearer ${jwtToken}`);
 
-    // דוגמת בדיקה לעדכון תגובה
-    it('should update a comment', async () => {
-        const res = await request(app)
-            .put('/comments/60d5f4a1b1b3b8f4ccdb3f6c') // עדכן את ה-ID לדוגמה
-            .send({ content: 'Updated comment content' })
-            .set('Authorization', Token); // הוסף את ה-token כאן
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty('content', 'Updated comment content');
+        expect(response.status).toBe(404);
     });
+});
 
-    // דוגמת בדיקה למחוק תגובה
-    it('should delete a comment', async () => {
-        const res = await request(app)
-            .delete('/comments/60d5f4a1b1b3b8f4ccdb3f6c') // עדכן את ה-ID לדוגמה
-            .set('Authorization', Token); // הוסף את ה-token כאן
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty('message', 'Comment deleted successfully');
-    });
+// בדיקה למחיקת כל התגובות
+describe('DELETE /comments', () => {
+    it('should delete all comments successfully', async () => {
+        const post = await Post.create({ title: 'Test Post', content: 'Test Content', sender: "senderId" });
 
-    // דוגמת בדיקה למחוק את כל התגובות
-    it('should delete all comments', async () => {
-        const res = await request(app)
+        await Comment.create({ content: 'Comment 1', user: 'user1', postId: post._id });
+        await Comment.create({ content: 'Comment 2', user: 'user2', postId: post._id });
+
+        const response = await request(server)
             .delete('/comments')
-            .set('Authorization', Token);
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty('message', 'All comments deleted successfully');
+            .set('Authorization', `Bearer ${jwtToken}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.message).toBe('All comments deleted successfully');
     });
 });

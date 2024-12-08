@@ -28,10 +28,5 @@ app.use('/post', postRoutes);
 app.use("/comments", commentRoutes);
 app.use("/auth", authRoutes)
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
-    console.log('Swagger Docs at http://localhost:3000/api/docs');
-});
 
 export default app;

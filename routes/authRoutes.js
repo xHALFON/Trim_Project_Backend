@@ -1,5 +1,5 @@
 import express from "express";
-import { login, register, logout } from "../controllers/AuthController.js"
+import { login, register, logout, refreshToken } from "../controllers/AuthController.js"
 const router = express.Router()
 
 /**
@@ -134,4 +134,25 @@ router.post('/login', login);
  *                   example: 'Invalid refresh token'
  */
 router.post('/logout', logout);
+
+
+/**
+ * @swagger
+ * /auth/{refreshToken}:
+ *   post:
+ *     summary: refreshToken a user
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: refreshToken
+ *         schema:
+ *           type: string
+ *         description: The refreshToken of user
+ *     responses:
+ *       200:
+ *         description: User logged in successfully
+ *       401:
+ *         description: Invalid email or password
+ */
+router.post('/:refreshToken', refreshToken);
 export default router;

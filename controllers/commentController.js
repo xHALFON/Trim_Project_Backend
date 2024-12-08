@@ -31,6 +31,9 @@ export const getCommentsByPost = async (req, res) => {
     try {
         const { postId } = req.params;
         const comments = await Comment.find({ postId });
+        if(comments.length == 0){
+            return res.status(404).json({ message: "comment doesnt exists" });
+        }
         res.status(200).json(comments);
     } catch (err) {
         res.status(500).json({ error: err.message });
