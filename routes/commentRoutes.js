@@ -46,20 +46,17 @@ router.delete("/",protect, deleteAllComments)
  *       required:
  *         - userId
  *         - postId
- *         - text
+ *         - content
  *       properties:
- *         id:
+ *         content:
  *           type: string
  *           description: The auto-generated ID of the comment
- *         userId:
+ *         user:
  *           type: string
  *           description: ID of the user who created the comment
  *         postId:
  *           type: string
  *           description: ID of the post the comment is associated with
- *         text:
- *           type: string
- *           description: The content of the comment
  *         createdAt:
  *           type: string
  *           format: date-time

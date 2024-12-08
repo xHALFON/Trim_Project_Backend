@@ -22,7 +22,7 @@ router.put('/:id', protect, updatePost)
  *         id:
  *           type: string
  *           description: The auto-generated ID of the post
- *         senderId:
+ *         sender:
  *           type: string
  *           description: The ID of the user who created the post
  *         title:
