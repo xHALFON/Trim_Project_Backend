@@ -1,5 +1,5 @@
 import express from "express";
-import { login, register, logout, refreshToken } from "../controllers/AuthController.js"
+import AuthController from "../controllers/AuthController.js"
 const router = express.Router()
 
 /**
@@ -60,7 +60,7 @@ const router = express.Router()
  *       400:
  *         description: Invalid input data
  */
-router.post('/register',register);
+router.post('/register', AuthController.register);
 /**
  * @swagger
  * /auth/login:
@@ -79,7 +79,7 @@ router.post('/register',register);
  *       401:
  *         description: Invalid email or password
  */
-router.post('/login', login);
+router.post('/login', AuthController.login);
 
 /**
  * @swagger
@@ -133,7 +133,7 @@ router.post('/login', login);
  *                   type: string
  *                   example: 'Invalid refresh token'
  */
-router.post('/logout', logout);
+router.post('/logout', AuthController.logout);
 
 
 /**
@@ -154,5 +154,5 @@ router.post('/logout', logout);
  *       401:
  *         description: Invalid email or password
  */
-router.post('/:refreshToken', refreshToken);
+router.post('/:refreshToken', AuthController.refreshToken);
 export default router;

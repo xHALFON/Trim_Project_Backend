@@ -1,41 +1,32 @@
-import express from "express";
-import {
-    createComment,
-    getAllComments,
-    getCommentsByPost,
-    getCommentsByUser,
-    getCommentByID,
-    updateComment,
-    deleteComment,
-    deleteAllComments
-} from "../controllers/commentController.js";
+import express, { Router } from "express";
+import CommentController from "../controllers/commentController.js";
 import { protect } from '../middleware/middleware.js';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Create a comment
-router.post("/",protect, createComment);
+router.post("/",protect, CommentController.createComment);
 
 // Get all comments
-router.get("/",protect, getAllComments);
+router.get("/",protect, CommentController.getAllComments);
 
 // Get comments for a specific post by id
-router.get("/:postId",protect, getCommentsByPost);
+router.get("/:postId",protect, CommentController.getCommentsByPost);
 
 // Get comments for a specific user by user name
-router.get("/user/:user",protect, getCommentsByUser);
+router.get("/user/:user",protect, CommentController.getCommentsByUser);
 
 //Get comments for a specific comment id
-router.get("/getComment/:id",protect, getCommentByID)
+router.get("/getComment/:id",protect, CommentController.getCommentByID)
 
 // Update a comment
-router.put("/:id",protect, updateComment);
+router.put("/:id",protect, CommentController.updateComment);
 
 // Delete a comment
-router.delete("/:id",protect, deleteComment);
+router.delete("/:id",protect, CommentController.deleteComment);
 
 // Delete all comments
-router.delete("/",protect, deleteAllComments)
+router.delete("/",protect, CommentController.deleteAllComments)
 
 /**
  * @swagger

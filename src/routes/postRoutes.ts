@@ -1,12 +1,13 @@
-import express from 'express';
-import {addPost, getAllPosts_senderId, getPostById,updatePost} from '../controllers/postController.js'
+import express, { Router } from 'express';
+import PostController from '../controllers/postController.js'
 import { protect } from '../middleware/middleware.js';
-const router = express.Router();
 
-router.post('/', protect, addPost);
-router.get('/', protect, getAllPosts_senderId)
-router.get('/:id', protect, getPostById)
-router.put('/:id', protect, updatePost)
+const router: Router = express.Router();
+
+router.post('/', protect, PostController.addPost);
+router.get('/', protect, PostController.getAllPosts_senderId)
+router.get('/:id', protect, PostController.getPostById)
+router.put('/:id', protect, PostController.updatePost)
 
 /**
  * @swagger
@@ -19,9 +20,6 @@ router.put('/:id', protect, updatePost)
  *         - title
  *         - content
  *       properties:
- *         id:
- *           type: string
- *           description: The auto-generated ID of the post
  *         sender:
  *           type: string
  *           description: The ID of the user who created the post

@@ -3,13 +3,13 @@ export default {
   transform: {
     '^.+\\.js$': 'babel-jest',
   },
-  testMatch: ['<rootDir>/tests//*.test.js'], // Match all test files
+  testMatch: ['<rootDir>/tests//*.test.ts'], // Match all test files
   collectCoverage: true,
   collectCoverageFrom: [
-    'controllers/*.js',
-    'middleware/*.js',
-    'routes/*.js',
-    'models/*.js',
+    'controllers/*.ts',
+    'middleware/*.ts',
+    'routes/*.ts',
+    'models/*.ts',
   ],
   maxWorkers: 1, // הפעלת הבדיקות בעבודה אחת בלבד
 };
