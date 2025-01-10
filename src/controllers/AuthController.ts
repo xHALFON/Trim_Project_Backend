@@ -1,12 +1,12 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import User from "../models/userModel.js"
+import User from "../models/userModel"
 import { Request, Response } from 'express';
 import * as dotenv from "dotenv";
 
 dotenv.config()
 // jwt
-const generateToken = (id: String): string => {
+const generateToken = (id): string => {
     return jwt.sign({ id }, process.env.SECRET_KEY, { expiresIn: '1h' });
 };
 
@@ -75,8 +75,8 @@ class AuthController {
 
     // Refresh access token
     refreshToken = async (req: Request, res: Response): Promise<void> => {
-        const refreshToken: any = req.params;
-
+        const refreshToken: any = req.params.refreshToken;
+        
         const user = await User.findOne({ refreshToken });
         if (!user) {
             res.status(403).json({ error: 'Invalid refresh token' });

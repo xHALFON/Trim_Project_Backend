@@ -3,7 +3,7 @@ import app from '../index';
 import User from '../models/userModel';
 import mongoose from 'mongoose';
 
-let server;
+let server: any;
 describe('Auth API tests', () => {
   
   beforeAll(() => {
@@ -50,7 +50,7 @@ describe('Auth API tests', () => {
           });
   
         expect(res.status).toBe(400);
-        expect(res.body.message).toBe('User already exists');
+        expect(res.body.message).toBe('Email already exists');
       });
 
 

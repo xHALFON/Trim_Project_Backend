@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
-import PostController from '../controllers/postController.js'
-import { protect } from '../middleware/middleware.js';
+import PostController from '../controllers/postController'
+import { protect } from '../middleware/middleware';
 
 const router: Router = express.Router();
 

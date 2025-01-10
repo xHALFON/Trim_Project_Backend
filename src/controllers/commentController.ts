@@ -1,5 +1,5 @@
-import Comment from "../models/commentModel.js";
-import Post from "../models/postModel.js";
+import Comment from "../models/commentModel";
+import Post from "../models/postModel";
 import { Request, Response } from 'express';
 
 class CommentController {

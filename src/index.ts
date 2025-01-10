@@ -1,12 +1,12 @@
 // Tuval-Yulevich-315348359-Guy-Halfon-322206624
 import express from 'express'
-import { connectDB } from './utils/db.js';
+import { connectDB } from './utils/db';
 import bodyParser from 'body-parser';
-import commentRoutes from "./routes/commentRoutes.js";
-import postRoutes from './routes/postRoutes.js';
-import authRoutes from './routes/authRoutes.js';
+import commentRoutes from "./routes/commentRoutes";
+import postRoutes from './routes/postRoutes';
+import authRoutes from './routes/authRoutes';
 import swaggerUi from 'swagger-ui-express';
-import swaggerDocs from './swaggerConfig.js';
+import swaggerDocs from './swaggerConfig';
 
 const app = express();
 app.use(express.json());

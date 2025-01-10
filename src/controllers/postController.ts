@@ -1,4 +1,4 @@
-import Post from '../models/postModel.js';
+import Post from '../models/postModel';
 import { Request, Response } from 'express';
 
 class PostController {

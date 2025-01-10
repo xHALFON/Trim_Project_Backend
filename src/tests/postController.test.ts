@@ -5,7 +5,7 @@ import Post from '../models/postModel.js';
 import User from '../models/userModel.js';
 
 let jwtToken = null;
-let server;
+let server: any;
 
 beforeAll(async () => {
     server = app.listen(3003);
@@ -86,7 +86,7 @@ describe('GET /post', () => {
 
         const response = await request(server).get('/post').set('Authorization', `Bearer ${jwtToken}`);
 
-        expect(response.status).toBe(201);
+        expect(response.status).toBe(200);
         expect(response.body.length).toBe(2);
     });
 

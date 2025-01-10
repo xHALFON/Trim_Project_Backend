@@ -5,8 +5,8 @@ import Comment from '../models/commentModel.js';
 import Post from '../models/postModel.js';
 import User from '../models/userModel.js';
 
-let jwtToken = null;
-let server;
+let jwtToken: any = null;
+let server: any;
 
 beforeAll(async () => {
     server = app.listen(3001);
@@ -25,7 +25,6 @@ beforeAll(async () => {
         email: 'testusers@example.com',
         password: 'password123',
       });
-
     jwtToken = loginRes.body.accessToken;
 });
 
@@ -70,7 +69,7 @@ describe('POST /comments', () => {
             });
 
         expect(response.status).toBe(404);
-        expect(response.body.error).toBe('Post does not exists!');
+        expect(response.body.error).toBe('Post does not exist!');
     });
 });
 
