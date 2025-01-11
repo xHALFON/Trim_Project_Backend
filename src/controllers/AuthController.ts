@@ -14,7 +14,7 @@ class AuthController {
     // Register a user
     register = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { username, email, password } = req.body;
+            const { username, email, password, gender} = req.body;
 
             const userExists_email = await User.findOne({ email });
             const userExists_name = await User.findOne({ username });
@@ -29,13 +29,14 @@ class AuthController {
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
-            const user = new User({ username, email, password: hashedPassword });
+            const user = new User({ username, email, password: hashedPassword, gender});
             await user.save();
 
             res.status(201).json({
                 id: user._id,
                 username: user.username,
                 email: user.email,
+                gender: user.gender,
                 token: generateToken(user._id.toString()),
             });
         } catch (error) {
@@ -65,6 +66,7 @@ class AuthController {
                 id: user._id,
                 username: user.username,
                 email: user.email,
+                gender: user.gender,
                 accessToken: generateToken(user._id.toString()),
                 refreshToken: refreshToken,
             });
@@ -83,15 +85,28 @@ class AuthController {
             return;
         }
 
-        jwt.verify(refreshToken, "1234", (err: any, decoded: any) => {
+        jwt.verify(refreshToken, process.env.SECRET_KEY, (err: any, decoded: any) => {
             if (err) {
                 res.status(403).json({ error: 'Invalid refresh token' });
                 return;
             }
-
+ 
             const accessToken = generateToken(user._id.toString());
 
             res.status(200).json({ accessToken });
+        });
+    };
+
+    payload = async (req: Request, res: Response): Promise<void> => {
+        const Token: any = req.params.token;
+
+        jwt.verify(Token, process.env.SECRET_KEY, (err: any, decoded: any) => {
+            if (err) {
+                res.status(403).json({ error: 'Invalid refresh token' });
+                return;
+            }
+            
+            res.status(200).json({ message: 'Token is valid', data: decoded });
         });
     };
 
