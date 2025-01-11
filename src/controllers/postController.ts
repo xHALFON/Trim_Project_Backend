@@ -1,6 +1,15 @@
 import Post from '../models/postModel';
+import User from '../models/userModel';
 import { Request, Response } from 'express';
 
+interface RetrievePost{
+    title: string;
+    content: string;
+    sender: string;
+    image: string;
+    senderImg: string;
+    senderName: string;
+}
 class PostController {
     addPost = async (req: Request, res: Response): Promise<void> => {
         try {
@@ -17,19 +26,49 @@ class PostController {
             const senderId: string = req.query.sender as string;
             if (senderId) {
                 const posts = await Post.find({ sender: senderId });
-                if (!posts || posts.length === 0) {
-                    res.status(404).json({ error: 'No posts found for this sender' });
-                    return;
-                }
-                res.json(posts);
+                const senderDetails = await User.findOne({ _id: senderId });
+                
+                const postResult = await Promise.all(
+                    posts.map(async (post) => {
+                        const retPost: RetrievePost = {
+                            sender: post.sender,
+                            content: post.content,
+                            title: post.title,
+                            image: post.image,
+                            senderImg: senderDetails?.profileImage || "",
+                            senderName: senderDetails?.username || "",
+                        };
+                        return retPost;
+                    })
+                );
+    
+                res.json(postResult);
                 return;
+            } else {
+                const posts = await Post.find();
+    
+                const postResult = await Promise.all(
+                    posts.map(async (post) => {
+                        const senderDetails = await User.findOne({ _id: post.sender });
+                        const retPost: RetrievePost = {
+                            sender: post.sender,
+                            content: post.content,
+                            title: post.title,
+                            image: post.image,
+                            senderImg: senderDetails?.profileImage || "",
+                            senderName: senderDetails?.username || "",
+                        };
+                        return retPost;
+                    })
+                );
+    
+                res.json(postResult);
             }
-            const allPosts = await Post.find();
-            res.status(200).json(allPosts);
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
     };
+    
 
     getPostById = async (req: Request, res: Response): Promise<void> => {
         try {

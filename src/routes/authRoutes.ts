@@ -1,5 +1,6 @@
 import express from "express";
 import AuthController from "../controllers/AuthController"
+import { protect } from "../middleware/middleware";
 const router = express.Router()
 
 /**
@@ -13,6 +14,7 @@ const router = express.Router()
  *         - email
  *         - password
  *         - gender
+ *         - profileImage
  *       properties:
  *         username:
  *           type: string
@@ -26,6 +28,9 @@ const router = express.Router()
  *         gender:
  *           type: string
  *           description: The gender of the user account
+ *         profileImage:
+ *           type: string
+ *           description: The image of the user account
  *     UserLogin:
  *       type: object
  *       required:
@@ -163,10 +168,35 @@ router.post('/:refreshToken', AuthController.refreshToken);
 
 /**
  * @swagger
+ * /auth/{id}:
+ *   get:
+ *     summary: get user by id
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         description: The id of user
+ *     responses:
+ *       200:
+ *         description: Get user by id
+ *       401:
+ *         description: Invalid id
+ */
+router.get('/:id', protect,AuthController.getUserById);
+
+
+/**
+ * @swagger
  * /auth/payload/{token}:
  *   post:
  *     summary: payload a user
  *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: token

@@ -4,6 +4,7 @@ interface IPost extends Document {
     title: string;
     content: string;
     sender: string;
+    image: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -20,6 +21,10 @@ const postSchema = new Schema<IPost>({
     sender: {
       type: String,
       required: true,
+    },
+    image:{
+      type: String,
+      required :true
     },
 }, { timestamps: true });
 
