@@ -12,6 +12,7 @@ const router = express.Router()
  *         - username
  *         - email
  *         - password
+ *         - gender
  *       properties:
  *         username:
  *           type: string
@@ -22,6 +23,9 @@ const router = express.Router()
  *         password:
  *           type: string
  *           description: The password for the user account
+ *         gender:
+ *           type: string
+ *           description: The gender of the user account
  *     UserLogin:
  *       type: object
  *       required:
@@ -155,4 +159,26 @@ router.post('/logout', AuthController.logout);
  *         description: Invalid email or password
  */
 router.post('/:refreshToken', AuthController.refreshToken);
+
+
+/**
+ * @swagger
+ * /auth/payload/{token}:
+ *   post:
+ *     summary: payload a user
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         schema:
+ *           type: string
+ *         description: The token of user
+ *     responses:
+ *       200:
+ *         description: User verified
+ *       401:
+ *         description: Invalid token
+ */
+router.post('/payload/:token', AuthController.payload);
+
 export default router;

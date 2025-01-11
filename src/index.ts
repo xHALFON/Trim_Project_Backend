@@ -7,6 +7,7 @@ import postRoutes from './routes/postRoutes';
 import authRoutes from './routes/authRoutes';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocs from './swaggerConfig';
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
@@ -16,6 +17,10 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: err.message });
 });
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use(cors({
+    origin: '*', // לכל המקורות
+}));
+  
 
 app.get('/',(req,res)=>{
     res.send("Hello, Tuval is the king.")
