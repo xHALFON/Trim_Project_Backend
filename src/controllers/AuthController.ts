@@ -14,7 +14,7 @@ class AuthController {
     // Register a user
     register = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { username, email, password, gender} = req.body;
+            const { username, email, password, gender, profileImage} = req.body;
 
             const userExists_email = await User.findOne({ email });
             const userExists_name = await User.findOne({ username });
@@ -29,7 +29,7 @@ class AuthController {
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
-            const user = new User({ username, email, password: hashedPassword, gender});
+            const user = new User({ username, email, password: hashedPassword, gender, profileImage});
             await user.save();
 
             res.status(201).json({
@@ -37,6 +37,7 @@ class AuthController {
                 username: user.username,
                 email: user.email,
                 gender: user.gender,
+                profileImage: user.profileImage,
                 token: generateToken(user._id.toString()),
             });
         } catch (error) {
@@ -67,6 +68,7 @@ class AuthController {
                 username: user.username,
                 email: user.email,
                 gender: user.gender,
+                profileImage: user.profileImage,
                 accessToken: generateToken(user._id.toString()),
                 refreshToken: refreshToken,
             });
@@ -126,6 +128,29 @@ class AuthController {
         }
 
         res.json({ message: 'User logged out successfully' });
+    };
+    
+    // get user
+    getUserById = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const userId: string = req.params.id;
+
+            const user = await User.findById(userId);
+    
+            if (!user) {
+                res.status(404).json({ message: 'User not found' });
+                return;
+            }
+
+            res.json({
+                username: user.username,
+                email: user.email,
+                profileImage: user.profileImage,
+                gender: user.gender,
+            });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     };
 }
 

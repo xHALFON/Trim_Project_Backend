@@ -19,6 +19,7 @@ router.put('/:id', protect, PostController.updatePost)
  *         - senderId
  *         - title
  *         - content
+ *         - image
  *       properties:
  *         sender:
  *           type: string
@@ -29,6 +30,9 @@ router.put('/:id', protect, PostController.updatePost)
  *         content:
  *           type: string
  *           description: The content of the post
+ *         image:
+ *           type: string
+ *           description: the Image of the post
  *         createdAt:
  *           type: string
  *           format: date-time
