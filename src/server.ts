@@ -3,8 +3,8 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const port = process.env.PORT;
+const PORT = process.env.NODE_ENV === 'production' ? 443 : 80;
 
-app.listen(port, () => {
-   console.log(`Server is running on port ${port}`);
+app.listen(PORT, () => {
+   console.log(`Server is running on port ${PORT}`);
 });
