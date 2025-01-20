@@ -5,10 +5,130 @@ import { protect } from '../middleware/middleware';
 const router: Router = express.Router();
 
 router.post('/', protect, PostController.addPost);
-router.get('/', protect, PostController.getAllPosts_senderId)
-router.get('/:id', protect, PostController.getPostById)
-router.put('/:id', protect, PostController.updatePost)
+router.post('/handleLikes', protect, PostController.handleLike);
+router.post('/generateText', protect, PostController.generateText);
+router.get('/', protect, PostController.getAllPosts_senderId);
+router.get('/:id', protect, PostController.getPostById);
+router.put('/:id', protect, PostController.updatePost);
+router.delete('/:id', protect, PostController.deletePost);
 
+
+/**
+ * @swagger
+ * /post/generateText:
+ *   post:
+ *     summary: generateText content
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - prompt
+ *             properties:
+ *               prompt:
+ *                 type: string
+ *                 description: The ID of the post
+ *     responses:
+ *       200:
+ *         description: generated text
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 generatedText:
+ *                   type: string
+ *                   description: Confirmation message
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Internal server error
+ */
+
+
+/**
+ * @swagger
+ * /post/handleLikes:
+ *   post:
+ *     summary: Handle likes for a post (add/remove user like)
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - postId
+ *               - userId
+ *             properties:
+ *               postId:
+ *                 type: string
+ *                 description: The ID of the post
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the user
+ *     responses:
+ *       200:
+ *         description: Like status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Confirmation message
+ *                 numLikes:
+ *                   type: number
+ *                   description: The total number of likes on the post
+ *                 Likes:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                     description: IDs of users who liked the post
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /post/{id}:
+ *   delete:
+ *     summary: Delete a post by ID
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to delete
+ *     responses:
+ *       200:
+ *         description: Post deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Internal server error
+ */
 /**
  * @swagger
  * components:

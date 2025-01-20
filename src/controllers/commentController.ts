@@ -1,19 +1,40 @@
 import Comment from "../models/commentModel";
 import Post from "../models/postModel";
+import User from "../models/userModel";
 import { Request, Response } from 'express';
+
+interface RetrieveComment {
+    id: any,
+    content: string;
+    sender: string;
+    senderImg: string;
+    senderName: string;
+}
 
 class CommentController {
     // Create a comment
     createComment = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { content, user, postId } = req.body;
+            const { content, sender, postId } = req.body;
             const post = await Post.findOne({ _id: postId });
+            const user = await User.findOne({ _id: sender });
+            if (!user) {
+                res.status(404).json({ error: "User does not exist!" });
+                return;
+            }
             if (!post) {
                 res.status(404).json({ error: "Post does not exist!" });
                 return;
             }
-            const comment = await Comment.create({ content, user, postId });
-            res.status(201).json(comment);
+            const comment = await Comment.create({ content, sender, postId });
+            const result: RetrieveComment = {
+                id: comment._id,
+                content: comment.content,
+                sender: comment.sender,
+                senderImg: user.profileImage,
+                senderName: user.username
+            }
+            res.status(201).json(result);
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
@@ -23,7 +44,18 @@ class CommentController {
     getAllComments = async (req: Request, res: Response): Promise<void> => {
         try {
             const comments = await Comment.find();
-            res.status(200).json(comments);
+            const commentPromises = comments.map(async (comment) => {
+                const user = await User.findOne({ _id: comment.sender });
+                return {
+                    id: comment._id,
+                    content: comment.content,
+                    sender: comment.sender,
+                    senderImg: user?.profileImage || '',
+                    senderName: user?.username || 'Unknown Sender'
+                };
+            });
+            const result = await Promise.all(commentPromises);
+            res.status(200).json(result);
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
@@ -34,11 +66,18 @@ class CommentController {
         try {
             const { postId } = req.params;
             const comments = await Comment.find({ postId });
-            if (comments.length === 0) {
-                res.status(404).json({ message: "Comment doesn't exist" });
-                return;
-            }
-            res.status(200).json(comments);
+            const commentPromises = comments.map(async (comment) => {
+                const user = await User.findOne({ _id: comment.sender });
+                return {
+                    id: comment._id,
+                    content: comment.content,
+                    sender: comment.sender,
+                    senderImg: user?.profileImage || '',
+                    senderName: user?.username || 'Unknown Sender'
+                };
+            });
+            const result = await Promise.all(commentPromises);
+            res.status(200).json(result);
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
@@ -47,9 +86,20 @@ class CommentController {
     // Get comments by a specific user
     getCommentsByUser = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { user } = req.params;
-            const comments = await Comment.find({ user });
-            res.status(200).json(comments);
+            const { sender } = req.params;
+            const comments = await Comment.find({ sender });
+            const commentPromises = comments.map(async (comment) => {
+                const user = await User.findOne({ _id: comment.sender });
+                return {
+                    id: comment._id,
+                    content: comment.content,
+                    sender: comment.sender,
+                    senderImg: user?.profileImage || '',
+                    senderName: user?.username || 'Unknown Sender'
+                };
+            });
+            const result = await Promise.all(commentPromises);
+            res.status(200).json(result);
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
@@ -64,7 +114,15 @@ class CommentController {
                 res.status(404).json({ message: "Comment not found" });
                 return;
             }
-            res.status(200).json(comment);
+            const user = await User.findOne({ _id: comment.sender });
+            const result: RetrieveComment = {
+                id: comment._id,
+                content: comment.content,
+                sender: comment.sender,
+                senderImg: user?.profileImage || '',
+                senderName: user?.username || 'Unknown Sender'
+            }
+            res.status(200).json(result);
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
@@ -80,7 +138,15 @@ class CommentController {
                 res.status(404).json({ message: "Comment not found" });
                 return;
             }
-            res.status(200).json(updatedComment);
+            const user = await User.findOne({ _id: updatedComment.sender });
+            const result: RetrieveComment = {
+                id: updatedComment._id,
+                content: updatedComment.content,
+                sender: updatedComment.sender,
+                senderImg: user?.profileImage || '',
+                senderName: user?.username || 'Unknown Sender'
+            }
+            res.status(200).json(result);
         } catch (err) {
             res.status(500).json({ error: err.message });
         }

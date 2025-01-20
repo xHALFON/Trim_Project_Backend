@@ -4,12 +4,15 @@ interface IPost extends Document {
     title: string;
     content: string;
     sender: string;
+    numLikes: number;
+    Likes: mongoose.Types.ObjectId[];
     image: string;
     createdAt: Date;
     updatedAt: Date;
 }
 
-const postSchema = new Schema<IPost>({
+const postSchema = new Schema<IPost>(
+  {
     title: {
       type: String,
       required: true,
@@ -22,12 +25,23 @@ const postSchema = new Schema<IPost>({
       type: String,
       required: true,
     },
-    image:{
-      type: String,
-      required :true
+    Likes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    numLikes: {
+      type: Number,
+      default: 0,
     },
-}, { timestamps: true });
+    image: {
+      type: String,
+      required: false,
+    },
+  },
+  { timestamps: true }
+);
 
-
-const Post = mongoose.model<IPost>('Post', postSchema);
+const Post = mongoose.model<IPost>("Post", postSchema);
 export default Post;
