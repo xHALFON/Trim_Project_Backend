@@ -1,6 +1,8 @@
 import express from "express";
 import AuthController from "../controllers/AuthController"
 import { protect } from "../middleware/middleware";
+import passport from 'passport';
+
 const router = express.Router()
 
 /**
@@ -15,6 +17,7 @@ const router = express.Router()
  *         - password
  *         - gender
  *         - profileImage
+ *         - profileImageTop
  *       properties:
  *         username:
  *           type: string
@@ -31,6 +34,9 @@ const router = express.Router()
  *         profileImage:
  *           type: string
  *           description: The image of the user account
+ *         profileImageTop:
+ *           type: string
+ *           description: The image top of the user account
  *     UserLogin:
  *       type: object
  *       required:
@@ -70,6 +76,10 @@ const router = express.Router()
  *         description: Invalid input data
  */
 router.post('/register', AuthController.register);
+
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google/callback',passport.authenticate('google', { session: false }), AuthController.googleRegister);
+
 /**
  * @swagger
  * /auth/login:
@@ -144,26 +154,187 @@ router.post('/login', AuthController.login);
  */
 router.post('/logout', AuthController.logout);
 
+/**
+ * @swagger
+ * /auth/update/{id}:
+ *   put:
+ *     summary: Update user profile
+ *     description: Updates the user information like username, email, password, gender, profile image, and profile image top.
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: User ID
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: The username of the user.
+ *                 example: "john_doe"
+ *               gender:
+ *                 type: string
+ *                 description: The gender of the user.
+ *                 example: "male"
+ *     responses:
+ *       200:
+ *         description: User updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'User updated successfully'
+ *       400:
+ *         description: Invalid request.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: 'Bad request'
+ */
+router.put('/update/:id', AuthController.updateUser);
 
 /**
  * @swagger
- * /auth/{refreshToken}:
- *   post:
- *     summary: refreshToken a user
+ * /auth/delete/{id}:
+ *   delete:
+ *     summary: delete user profile
+ *     description: delete the user.
  *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: refreshToken
+ *       - name: id
+ *         in: path
+ *         description: User ID
+ *         required: true
  *         schema:
  *           type: string
- *         description: The refreshToken of user
  *     responses:
  *       200:
- *         description: User logged in successfully
- *       401:
- *         description: Invalid email or password
+ *         description: User updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'User updated successfully'
+ *       400:
+ *         description: Invalid request.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: 'Bad request'
  */
-router.post('/:refreshToken', AuthController.refreshToken);
+router.delete('/delete/:id', AuthController.deleteUser);
+
+/**
+ * @swagger
+ * /auth/refreshToken:
+ *   post:
+ *     summary: Refresh the access token for a user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: The ID of the user
+ *               accessToken:
+ *                 type: string
+ *                 description: The current access token
+ *           example:
+ *             id: "string"
+ *             accessToken: "string"
+ *     responses:
+ *       200:
+ *         description: Access token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                   description: The new access token
+ *               example:
+ *                 accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       403:
+ *         description: Invalid user ID or refresh token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *               example:
+ *                 error: "Invalid user id in refresh token"
+ */
+router.post('/refreshToken', AuthController.refreshToken);
+
+/**
+ * @swagger
+ * /auth/users:
+ *   get:
+ *     summary: Get all users
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: User ID
+ *                   username:
+ *                     type: string
+ *                     description: Username
+ *                   email:
+ *                     type: string
+ *                     description: User's email
+ *                   profileImage:
+ *                     type: string
+ *                     description: Profile image URL
+ *       404:
+ *         description: No users found
+ *       500:
+ *         description: Server error
+ */
+router.get('/users', protect,AuthController.getUsers);
 
 
 /**
@@ -188,6 +359,55 @@ router.post('/:refreshToken', AuthController.refreshToken);
  */
 router.get('/:id', protect,AuthController.getUserById);
 
+/**
+ * @swagger
+ * /auth/getUserByName/{username}:
+ *   get:
+ *     summary: Get user by name
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The username of the user
+ *     responses:
+ *       200:
+ *         description: User data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: User ID
+ *                 username:
+ *                   type: string
+ *                   description: User's username
+ *                 email:
+ *                   type: string
+ *                   description: User's email
+ *                 profileImage:
+ *                   type: string
+ *                   description: User's profile image
+ *                 profileImageTop:
+ *                   type: string
+ *                   description: User's profile image top position
+ *                 gender:
+ *                   type: string
+ *                   description: User's gender
+ *       404:
+ *         description: User not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/getUserByName/:username', protect,AuthController.getUserByName);
 
 /**
  * @swagger
@@ -210,5 +430,55 @@ router.get('/:id', protect,AuthController.getUserById);
  *         description: Invalid token
  */
 router.post('/payload/:token', AuthController.payload);
+
+
+/**
+ * @swagger
+ * /auth/updateProfileImage:
+ *   post:
+ *     summary: Update a profile image for a user
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the user
+ *                 example: 1234567890abcdef
+ *               filename:
+ *                 type: string
+ *                 description: The name of the image file
+ *                 example: profile-picture.jpg
+ *     responses:
+ *       200:
+ *         description: Profile image updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Profile image updated successfully
+ *                 user:
+ *                   $ref: '#/components/schemas/UserRegistration'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User not found
+ */
+router.post('/updateProfileImage', protect, AuthController.updateProfileImage);
 
 export default router;

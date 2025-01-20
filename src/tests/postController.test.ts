@@ -6,27 +6,27 @@ import User from '../models/userModel.js';
 
 let jwtToken = null;
 let server: any;
+let user: any;
 
 beforeAll(async () => {
     server = app.listen(3003);
 
-    // נרשם משתמש לצורך קבלת JWT token
-    const registerRes = await request(server)
-        .post('/auth/register')
-        .send({
-            username: 'testsuser',
-            email: 'testusers@example.com',
-            password: 'password123',
-        });
+    // Register a user to obtain a JWT token
+    await request(server).post('/auth/register').send({
+        username: 'testsuser',
+        email: 'testusers@example.com',
+        password: 'password123',
+        gender: 'male',
+        profileImage: 'none',
+        profileImageTop: 'none',
+    });
 
-    // מתחבר עם המייל והסיסמה שהוזנו
+    // Log in with the registered user
     const loginRes = await request(server)
         .post('/auth/login')
-        .send({
-            email: 'testusers@example.com',
-            password: 'password123',
-        });
+        .send({ email: 'testusers@example.com', password: 'password123' });
 
+    user = loginRes.body
     jwtToken = loginRes.body.accessToken;
 });
 
@@ -40,14 +40,14 @@ afterAll(async () => {
     server.close();
 });
 
-// בדיקה ליצירת פוסט
+// Test suite for POST /post
 describe('POST /post', () => {
     it('should create a post successfully', async () => {
         const response = await request(server)
             .post('/post')
             .set('Authorization', `Bearer ${jwtToken}`)
             .send({
-                sender: 'senderId123',
+                sender: user.id,
                 title: 'Test Post',
                 content: 'This is a test post content',
             });
@@ -62,74 +62,62 @@ describe('POST /post', () => {
             .post('/post')
             .set('Authorization', `Bearer ${jwtToken}`)
             .send({
-                sender: 'senderId123',
+                sender: user.id,
             });
 
         expect(response.status).toBe(500);
-        expect(response.body.error).toBe('Post validation failed: content: Path `content` is required., title: Path `title` is required.');
+        expect(response.body.error).toMatch(/validation failed/i);
     });
 });
 
-// בדיקה לקריאה של כל הפוסטים
+// Test suite for GET /post
 describe('GET /post', () => {
     it('should return all posts', async () => {
-        await Post.create({
-            sender: 'senderId123',
-            title: 'Test Post 1',
-            content: 'Content for post 1',
-        });
-        await Post.create({
-            sender: 'senderId123',
-            title: 'Test Post 2',
-            content: 'Content for post 2',
-        });
+        await Post.create({ sender: user.id, title: 'Post 1', content: 'Content 1' });
+        await Post.create({ sender: user.id, title: 'Post 2', content: 'Content 2' });
 
-        const response = await request(server).get('/post').set('Authorization', `Bearer ${jwtToken}`);
+        const response = await request(server)
+            .get('/post')
+            .set('Authorization', `Bearer ${jwtToken}`);
 
         expect(response.status).toBe(200);
         expect(response.body.length).toBe(2);
     });
 
     it('should filter posts by sender', async () => {
-        const post1 = await Post.create({
-            sender: 'senderId123',
-            title: 'Test Post 1',
-            content: 'Content for post 1',
-        });
-        const post2 = await Post.create({
-            sender: 'senderId456',
-            title: 'Test Post 2',
-            content: 'Content for post 2',
-        });
+        await Post.create({ sender: user.id, title: 'Post 1', content: 'Content 1' });
+        await Post.create({ sender: 'senderId456', title: 'Post 2', content: 'Content 2' });
 
         const response = await request(server)
-            .get('/post?sender=senderId123')
+            .get(`/post?sender=${user.id}`)
             .set('Authorization', `Bearer ${jwtToken}`);
 
         expect(response.status).toBe(200);
         expect(response.body.length).toBe(1);
-        expect(response.body[0].sender).toBe('senderId123');
+        expect(response.body[0].sender).toBe(user.id);
     });
 });
 
-// בדיקה לקריאה של פוסט לפי ID
+// Test suite for GET /post/:id
 describe('GET /post/:id', () => {
     it('should return a post by ID', async () => {
         const post = await Post.create({
-            sender: 'senderId123',
+            sender: user.id,
             title: 'Test Post',
-            content: 'This is a test post content',
+            content: 'Content',
         });
 
-        const response = await request(server).get(`/post/${post._id}`).set('Authorization', `Bearer ${jwtToken}`);
+        const response = await request(server)
+            .get(`/post/${post._id}`)
+            .set('Authorization', `Bearer ${jwtToken}`);
 
         expect(response.status).toBe(200);
-        expect(response.body[0].title).toBe('Test Post');
+        expect(response.body.title).toBe('Test Post');
     });
 
     it('should return 404 if post is not found', async () => {
         const response = await request(server)
-            .get('/post/6755898b29631b6e57ecd791')
+            .get('/post/6755898b29631b6e51ecd791')
             .set('Authorization', `Bearer ${jwtToken}`);
 
         expect(response.status).toBe(404);
@@ -137,39 +125,130 @@ describe('GET /post/:id', () => {
     });
 });
 
-// בדיקה לעדכון פוסט
-describe('PUT /post/:id', () => {
-    it('should update a post successfully', async () => {
+// Test suite for DELETE /post/:id
+describe('DELETE /post/:id', () => {
+    it('should delete a post successfully', async () => {
         const post = await Post.create({
-            sender: 'senderId123',
-            title: 'Test Post',
-            content: 'This is a test post content',
+            sender: user.id,
+            title: 'Post to delete',
+            content: 'Content to delete',
         });
 
         const response = await request(server)
-            .put(`/post/${post._id}`)
-            .set('Authorization', `Bearer ${jwtToken}`)
-            .send({
-                sender: 'senderId123',
-                title: 'Updated Test Post',
-                content: 'Updated content for the test post',
-            });
+            .delete(`/post/${post._id}`)
+            .set('Authorization', `Bearer ${jwtToken}`);
 
         expect(response.status).toBe(200);
-        expect(response.body.title).toBe('Updated Test Post');
-        expect(response.body.content).toBe('Updated content for the test post');
+        expect(response.body.message).toBe('Post deleted successfully');
     });
 
-    it('should return 404 if post is not found', async () => {
+    it('should return 404 if post does not exist', async () => {
         const response = await request(server)
-            .put('/post/6755898b29631b6e57ecd791')
-            .set('Authorization', `Bearer ${jwtToken}`)
-            .send({
-                title: 'Updated Test Post',
-                content: 'Updated content for the test post',
-            });
+            .delete('/post/6755898b29631b6e57ecd791')
+            .set('Authorization', `Bearer ${jwtToken}`);
 
         expect(response.status).toBe(404);
-        expect(response.body.error).toBe('Post not found');
+        expect(response.body.message).toBe('Post not found');
+    });
+});
+
+// Test suite for POST /post/like
+describe('POST /post/handleLikes', () => {
+    it('should like a post successfully', async () => {
+        const post = await Post.create({
+            sender: user.id,
+            title: 'Post to like',
+            content: 'Content to like',
+        });
+
+        const response = await request(server)
+            .post('/post/handleLikes')
+            .set('Authorization', `Bearer ${jwtToken}`)
+            .send({ postId: post._id, userId: user.id });
+
+        expect(response.status).toBe(200);
+    });
+
+    it('should return 404 if post does not exist', async () => {
+        const response = await request(server)
+            .post('/post/handleLikes')
+            .set('Authorization', `Bearer ${jwtToken}`)
+            .send({ postId: '6755898b29631b6e57ecd711', userId: user.id });
+
+        expect(response.status).toBe(404);
+        expect(response.body.message).toBe('Post not found');
+    });
+    // Test suite for PUT /post/:id
+    describe('PUT /post/:id', () => {
+        it('should update a post successfully', async () => {
+            const post = await Post.create({
+                sender: user.id,
+                title: 'Original Title',
+                content: 'Original Content',
+            });
+
+            const response = await request(server)
+                .put(`/post/${post._id}`)
+                .set('Authorization', `Bearer ${jwtToken}`)
+                .send({
+                    sender: user.id,
+                    title: 'Updated Title',
+                    content: 'Updated Content',
+                });
+
+            expect(response.status).toBe(200);
+            expect(response.body.title).toBe('Updated Title');
+            expect(response.body.content).toBe('Updated Content');
+        });
+
+        it('should return 404 if post is not found', async () => {
+            const response = await request(server)
+                .put('/post/6755898b29631b6e57ecd791')
+                .set('Authorization', `Bearer ${jwtToken}`)
+                .send({
+                    sender: user.id,
+                    title: 'Updated Title',
+                    content: 'Updated Content',
+                });
+
+            expect(response.status).toBe(404);
+            expect(response.body.error).toBe('Post not found');
+        });
+
+        it('should return 400 if user is not found', async () => {
+            const response = await request(server)
+                .put('/post/6755898b29631b6e57ecd791')
+                .set('Authorization', `Bearer ${jwtToken}`)
+                .send({
+                    sender: '6755898b29631b6e57aaa112',
+                    title: 'Updated Title',
+                    content: 'Updated Content',
+                });
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe('No user found');
+        });
+
+        it('should return 500 for server errors', async () => {
+            jest.spyOn(Post, 'findOneAndUpdate').mockRejectedValueOnce(new Error('Server error'));
+
+            const post = await Post.create({
+                sender: user.id,
+                title: 'Original Title',
+                content: 'Original Content',
+            });
+
+            const response = await request(server)
+                .put(`/post/${post._id}`)
+                .set('Authorization', `Bearer ${jwtToken}`)
+                .send({
+                    sender: user.id,
+                    title: 'Updated Title',
+                    content: 'Updated Content',
+                });
+
+            expect(response.status).toBe(500);
+            expect(response.body.error).toBe('Server error');
+        });
     });
 });

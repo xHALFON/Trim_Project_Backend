@@ -14,7 +14,7 @@ router.get("/",protect, CommentController.getAllComments);
 router.get("/:postId",protect, CommentController.getCommentsByPost);
 
 // Get comments for a specific user by user name
-router.get("/user/:user",protect, CommentController.getCommentsByUser);
+router.get("/user/:sender",protect, CommentController.getCommentsByUser);
 
 //Get comments for a specific comment id
 router.get("/getComment/:id",protect, CommentController.getCommentByID)
@@ -35,14 +35,14 @@ router.delete("/",protect, CommentController.deleteAllComments)
  *     Comment:
  *       type: object
  *       required:
- *         - userId
+ *         - sender
  *         - postId
  *         - content
  *       properties:
  *         content:
  *           type: string
  *           description: The auto-generated ID of the comment
- *         user:
+ *         sender:
  *           type: string
  *           description: ID of the user who created the comment
  *         postId:
@@ -135,7 +135,7 @@ router.delete("/",protect, CommentController.deleteAllComments)
 
 /**
  * @swagger
- * /comments/user/{user}:
+ * /comments/sender/{sender}:
  *   get:
  *     summary: Get comments by user name
  *     tags: [Comments]
@@ -143,7 +143,7 @@ router.delete("/",protect, CommentController.deleteAllComments)
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: user
+ *         name: sender
  *         schema:
  *           type: string
  *         required: true
